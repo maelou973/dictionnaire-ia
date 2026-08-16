@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Dictionnaire IA</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+    <main class="page">
+        <section class="hero">
+            <h1>📖 Dictionnaire IA</h1>
+            <p class="sous-titre">
+                Consulte les générations déjà créées, puis relance une recherche seulement si nécessaire.
+            </p>
+
+            <div class="compte-barre">
+                <div id="compte_deconnecte" class="compte-zone">
+                    <div class="compte-onglets">
+                        <button type="button" id="onglet_connexion" class="onglet-compte actif">
+                            Connexion
+                        </button>
+
+                        <button type="button" id="onglet_inscription" class="onglet-compte">
+                            Créer un compte
+                        </button>
+                    </div>
+
+                    <form id="form_connexion" class="compte-formulaire">
+                        <input
+                            id="compte_connexion_identifiant"
+                            type="text"
+                            placeholder="Pseudo ou e-mail"
+                            autocomplete="username"
+                        >
+
+                        <input
+                            id="compte_connexion_mdp"
+                            type="password"
+                            placeholder="Mot de passe"
+                            autocomplete="current-password"
+                        >
+
+                        <button type="submit">Connexion</button>
+                    </form>
+
+                    <form id="form_inscription" class="compte-formulaire cache">
+                        <input
+                            id="compte_inscription_nom"
+                            type="text"
+                            placeholder="Pseudo"
+                            autocomplete="username"
+                        >
+
+                        <input
+                            id="compte_inscription_email"
+                            type="email"
+                            placeholder="Adresse e-mail"
+                            autocomplete="email"
+                        >
+
+                        <input
+                            id="compte_inscription_mdp"
+                            type="password"
+                            placeholder="Mot de passe"
+                            autocomplete="new-password"
+                        >
+
+                        <button type="submit" class="secondaire">Créer le compte</button>
+                    </form>
+
+                    <span id="message_compte" class="message-compte"></span>
+                </div>
+
+                <div id="compte_connecte" class="compte-connecte cache">
+                    <button type="button" id="bouton_compte" class="bouton-compte">
+                        Connecté en tant que <strong id="nom_compte"></strong>
+                    </button>
+
+                    <button type="button" class="secondaire mini-bouton" id="bouton_deconnexion">
+                        Déconnexion
+                    </button>
+                </div>
+            </div>
+
+            <div class="barre-recherche">
+                <input id="mot" placeholder="Mot à explorer, ex : tulipe">
+                <button onclick="consulterMot()">Voir les générations</button>
+                <button class="secondaire" onclick="rechercherSources()">Précharger les sources</button>
+            </div>
+
+            <details>
+                <summary>⚙️ Options de génération personnalisée</summary>
+
+                <div class="options">
+                    <div class="bloc-option">
+                        <h3>Style</h3>
+                        <select id="style">
+                            <option value="académique">Académique</option>
+                            <option value="relax">Relax</option>
+                            <option value="encyclopédique">Encyclopédique</option>
+                            <option value="rapide">Rapide</option>
+                        </select>
+
+                        <h3>Longueur</h3>
+                        <select id="longueur">
+                            <option value="courte">Courte</option>
+                            <option value="moyenne" selected>Moyenne</option>
+                            <option value="longue">Longue</option>
+                        </select>
+                    </div>
+
+                    <div class="bloc-option">
+                        <h3>Sources</h3>
+                        <div id="options_sources">
+                            <p class="message">Chargement des options de sources...</p>
+                        </div>
+                    </div>
+
+                    <div class="bloc-option">
+                        <h3>Gestion des sources</h3>
+                        <label>
+                            <input type="checkbox" id="mode_test_prompt">
+                            Mode test : afficher le prompt sans appeler l’IA
+                        </label>
+
+                        <label>
+                            <input type="checkbox" id="reutiliser_sources" checked>
+                            Réutiliser les sources déjà téléchargées
+                        </label>
+
+                        <p class="petit">
+                            Si cette case est cochée, l’application reprend les sources déjà stockées quand elles existent.
+                            Si elle est décochée, les sources demandées sont retéléchargées.
+                        </p>
+                    </div>
+
+                    <div class="bloc-option">
+                        <h3>Catégories</h3>
+                        <label><input type="checkbox" name="categories" value="definition" checked> Définition</label>
+                        <label><input type="checkbox" name="categories" value="etymologie" checked> Étymologie</label>
+                        <label><input type="checkbox" name="categories" value="synonymes"> Synonymes</label>
+                        <label><input type="checkbox" name="categories" value="voyage_geographique"> Voyage géographique</label>
+                    </div>
+
+                    <div class="bloc-option">
+                        <h3>Requête personnelle</h3>
+                        <textarea id="requete" placeholder="Ex : insiste sur l’étymologie, puis compare les sens anciens et modernes."></textarea>
+                    </div>
+                </div>
+
+                <div class="actions-generation">
+                    <button onclick="genererPersonnalise()">Générer avec ces options</button>
+                </div>
+
+            </details>
+        </section>
+
+        <section id="page_compte" class="page-compte cache">
+            <div class="carte compte-page-carte">
+                <div class="compte-page-entete">
+                    <div>
+                        <h2>👤 Mon compte</h2>
+                        <p class="message">
+                            Gère ton profil, ton e-mail, ton mot de passe et tes fiches.
+                        </p>
+                    </div>
+
+                    <button type="button" class="secondaire" id="retour_compte">
+                        ← Retour au dictionnaire
+                    </button>
+                </div>
+
+                <div class="compte-identite">
+                    <p>
+                        <strong>Pseudo actuel :</strong>
+                        <span id="compte_pseudo_actuel">—</span>
+                    </p>
+
+                    <p>
+                        <strong>E-mail :</strong>
+                        <span id="compte_email_actuel">—</span>
+                    </p>
+
+                    <p>
+                        <strong>ID de profil :</strong>
+                        <span id="compte_identifiant_public">—</span>
+                    </p>
+                </div>
+
+                <p id="message_compte_modal" class="message-compte"></p>
+
+                <div class="compte-page-grille">
+                    <section class="compte-section">
+                        <h3>Changer le pseudo</h3>
+
+                        <form id="form_modifier_pseudo" class="compte-formulaire vertical">
+                            <input id="nouveau_pseudo" type="text" placeholder="Nouveau pseudo" autocomplete="username">
+                            <input id="mdp_pseudo" type="password" placeholder="Mot de passe actuel" autocomplete="current-password">
+                            <button type="submit">Modifier le pseudo</button>
+                        </form>
+                    </section>
+
+                    <section class="compte-section">
+                        <h3>Changer l’e-mail</h3>
+
+                        <form id="form_modifier_email" class="compte-formulaire vertical">
+                            <input id="nouvel_email" type="email" placeholder="Nouvel e-mail" autocomplete="email">
+                            <input id="mdp_email" type="password" placeholder="Mot de passe actuel" autocomplete="current-password">
+                            <button type="submit">Modifier l’e-mail</button>
+                        </form>
+                    </section>
+
+                    <section class="compte-section">
+                        <h3>Changer le mot de passe</h3>
+
+                        <form id="form_modifier_mdp" class="compte-formulaire vertical">
+                            <input id="ancien_mdp" type="password" placeholder="Ancien mot de passe" autocomplete="current-password">
+                            <input id="nouveau_mdp" type="password" placeholder="Nouveau mot de passe" autocomplete="new-password">
+                            <button type="submit">Modifier le mot de passe</button>
+                        </form>
+                    </section>
+
+                    <section class="compte-section compte-section-large">
+                        <h3>Mes fiches</h3>
+
+                        <div id="mes_fiches">
+                            <p class="message">Chargement...</p>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </section>
+
+        <section id="page_utilisateur" class="page-compte cache">
+            <div class="carte compte-page-carte">
+                <div class="compte-page-entete">
+                    <div>
+                        <h2>👤 Profil de <span id="profil_nom_utilisateur">—</span></h2>
+                        <p class="message">
+                            Fiches créées par cet utilisateur.
+                        </p>
+                    </div>
+
+                    <button type="button" class="secondaire" id="retour_profil">
+                        ← Retour au dictionnaire
+                    </button>
+                </div>
+
+                <div class="compte-identite">
+                    <p>
+                        <strong>ID de profil :</strong>
+                        <span id="profil_id_profil">—</span>
+                    </p>
+
+                    <p>
+                        <strong>Date de création :</strong>
+                        <span id="profil_date_creation">—</span>
+                    </p>
+
+                    <p>
+                        <strong>Rôle :</strong>
+                        <span id="profil_role">—</span>
+                    </p>
+                </div>
+
+                <section class="compte-section compte-section-large">
+                    <h3>Fiches publiques</h3>
+
+                    <div id="profil_fiches">
+                        <p class="message">Chargement...</p>
+                    </div>
+                </section>
+            </div>
+        </section>
+
+        <section class="grille">
+            <aside>
+                <div class="carte">
+                    <h2>🕰️ Générations</h2>
+                    <div id="generations">
+                        <p class="message">Entre un mot, puis clique sur “Voir les générations”.</p>
+                    </div>
+                </div>
+
+                <div class="carte" style="margin-top: 20px;">
+                    <h2>📚 Sources brutes</h2>
+                    <div id="sources_brutes">
+                        <p class="message">Les sources disponibles s’afficheront ici.</p>
+                    </div>
+                </div>
+            </aside>
+
+            <section>
+                <div class="carte">
+                    <h2>📌 État</h2>
+                    <div id="resultat">
+                        <p class="message">
+                            Ici s’affichera l’état de la recherche ou de la mise à jour.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="carte" style="margin-top: 20px;">
+                    <h2>📄 Génération ouverte</h2>
+                    <div id="generation_ouverte">
+                        <p class="message">
+                            Clique sur une ancienne génération pour l’ouvrir.
+                        </p>
+                    </div>
+                </div>
+            </section>
+        </section>
+    </main>
+    <script src="/static/script.js?v=compte2"></script>
+</body>
+</html>
