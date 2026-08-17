@@ -78,32 +78,30 @@ def recuperer_langues_wikidata():
     Wikidata est un seul site multilingue : on ne cherche pas des sous-domaines,
     on change le paramètre language dans l'API.
     """
-    if MAX_LANGUES is not None:
-        if isinstance(MAX_LANGUES, (int, float)) == True:
-            langues = langues[:MAX_LANGUES]
-        else:
-            langues = MAX_LANGUES
+    # 1. Si MAX_LANGUES est une liste précise (ex: ["fr", "en"]), on la renvoie directement
+    if isinstance(MAX_LANGUES, list):
+        return MAX_LANGUES
     
-    else:
-        data = appel_api({
-            "action": "query",
-            "meta": "siteinfo",
-            "siprop": "languages"
-        })
+    # 2. Sinon, on interroge l'API pour récupérer toutes les langues disponibles
+    data = appel_api({
+        "action": "query",
+        "meta": "siteinfo",
+        "siprop": "languages"
+    })
 
-        langues = []
+    langues = []
+    for langue in data.get("query", {}).get("languages", []):
+        code = langue.get("code")
+        if code:
+            langues.append(code)
 
-        for langue in data.get("query", {}).get("languages", []):
-            code = langue.get("code")
+    langues = sorted(set(langues))
 
-            if code:
-                langues.append(code)
-
-        langues = sorted(set(langues))
-
+    # 3. Si MAX_LANGUES est un nombre, on ne garde que ce nombre de langues dans la liste
+    if isinstance(MAX_LANGUES, int) or isinstance(MAX_LANGUES, float):
+        langues = langues[:int(MAX_LANGUES)]
 
     return langues
-
 
 def rechercher_wikidata(mot, langue):
     """
